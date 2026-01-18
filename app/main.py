@@ -1,23 +1,35 @@
-import numpy as np 
+import os
+import numpy as np
 import joblib
-from fastapi import FastAPI
 import pandas as pd
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-
-app =  FastAPI()
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from pydantic import BaseModel
+#  APP INIT 
+app = FastAPI()
 
+#  CORS 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # sab origins allow (development ke liye)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+#  STATIC FRONTEND 
+# BASE DIR = project root (LOAD_API)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+app.mount(
+    "/frontend",
+    StaticFiles(directory=os.path.join(BASE_DIR, "frontend"), html=True),
+    name="frontend"
+)
+
+#  INPUT SCHEMA 
 class LoanInput(BaseModel):
     Gender: str
     Married: str
@@ -31,20 +43,20 @@ class LoanInput(BaseModel):
     Credit_History: float
     Property_Area: str
 
+#  LOAD MODEL 
+model = joblib.load(os.path.join(BASE_DIR, "MODELS", "loan_model.pkl"))
 
-model = joblib.load("MODELS/loan_model.pkl")
-
+#  ROUTES 
 @app.get("/")
 def home():
     return {"message": "Loan Model API is running"}
-
 
 @app.post("/predict")
 def predict(data: LoanInput):
     df = pd.DataFrame([data.dict()])
 
-    proba = model.predict_proba(df)[0]   # [No, Yes]
-    prediction = model.predict(df)[0]    # 'Y' or 'N'
+    proba = model.predict_proba(df)[0]
+    prediction = model.predict(df)[0]
 
     decision = "APPROVED" if prediction == "Y" else "REJECTED"
 
@@ -57,5 +69,3 @@ def predict(data: LoanInput):
             "Income and loan amount were evaluated"
         ]
     }
-
-
