@@ -15,7 +15,8 @@ document.getElementById("loanForm").addEventListener("submit", async function (e
     Property_Area: document.getElementById("Property_Area").value
   };
 
-  const response = await fetch("http://127.0.0.1:8000/predict", {
+  const response = await fetch(
+    "https://ai-loan-decision-system-4.onrender.com/predict", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
