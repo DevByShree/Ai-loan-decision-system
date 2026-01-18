@@ -39,3 +39,5 @@ document.getElementById("loanForm").addEventListener("submit", async function (e
     reasonsList.appendChild(li);
   });
 });
+document.getElementById("loanForm").reset();
+
